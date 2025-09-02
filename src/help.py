@@ -1,4 +1,7 @@
 import sqlite3
+from rich.console import Console
+
+console = Console()
 
 
 def create_database():
@@ -13,7 +16,7 @@ def create_database():
             conn.commit()
         return True
     except sqlite3.Error as e:
-        print('Erro de sql:', e)
+        console.print('Erro de sql:', e)
         return False
 
 
@@ -29,7 +32,7 @@ def insert_into_table(data: tuple):
                 cursor.close()
                 return False
     except sqlite3.Error as e:
-        print('Erro ao inserir dados:', e)
+        console.print('Erro ao inserir dados:', e)
         return False
 
 
@@ -66,12 +69,13 @@ def get_random_data() -> tuple:
             cursor.execute('SELECT * FROM english ORDER BY RANDOM() LIMIT 1')
             return cursor.fetchone()
     except sqlite3.Error as e:
-        print('Erro ao obter dados:', e)
+        console.print('Erro ao obter dados:', e)
         return ()
 
 
-def game(result: tuple):
-    print(result[0])
+def game(result: tuple, level: int):
+    color = ['green', 'yellow', 'red']
+    console.print(result[0], style=str(color[level]))
     translate = input('Translate: ').strip()
     past = input('Past: ').strip()
     past_participle = input('Past participle: ').strip()
@@ -87,7 +91,7 @@ def get_level(result: tuple):
 
 def main_menu():
     while True:
-        print('choose your option: ')
+        console.print('choose your option: ')
         op = input().strip().lower()
 
         if op == '1':
@@ -98,18 +102,19 @@ def main_menu():
                 while True:
                     result = get_random_data()
                     if result is None:
-                        print('No data found in table, please insert it')
+                        console.print('No data found in table, please insert it')
                         break
                     if len(result if result is not None else '') > 0:
-                        if game(result):
-                            print('Correct')
-                            points += get_level(result)
+                        level = get_level(result)
+                        if game(result, level - 1):
+                            console.print('Correct')
+                            points += level
                         else:
-                            print('Incorrect:', *result)
+                            console.print('Incorrect:', *result)
             except KeyboardInterrupt:
-                print('Points =', points)
+                console.print('Points =', points)
         if op in ('0', '', 'q'):
-            print('bye.')
+            console.print('bye.')
             exit()
 
 
