@@ -8,9 +8,9 @@ def create_database():
     # incializa a table principal
     schema = 'CREATE TABLE IF NOT EXISTS english (' \
         'word VARCHAR(50) UNIQUE NOT NULL,' \
-        'translation VARCHAR(50),' \
-        'past,' \
-        'past_participle)'
+        'translation VARCHAR(50) NOT NULL,' \
+        'past VARCHAR(50) NOT NULL,' \
+        'past_participle VARCHAR(50) NOT NULL)'
     try:
         with sqlite3.Connection('english.db') as conn:
             conn.execute(schema)
@@ -26,7 +26,8 @@ def insert_into_table(data: tuple):
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT OR IGNORE INTO english (word, translation, past, past_participle) VALUES (?, ?, ?, ?)', data)
+            cursor.execute(
+                'INSERT OR IGNORE INTO english (word, translation, past, past_participle) VALUES (?, ?, ?, ?)', data)
             if cursor.rowcount > 0:
                 cursor.close()
                 return True
@@ -72,7 +73,8 @@ def get_random_data() -> tuple:
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM english ORDER BY RANDOM() LIMIT 1')
+            cursor.execute(
+                'SELECT word, translation, past, past_participle FROM english ORDER BY RANDOM() LIMIT 1')
             return cursor.fetchone()
     except sqlite3.Error as e:
         console.print('Erro ao obter dados:', e)
