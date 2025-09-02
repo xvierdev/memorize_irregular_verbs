@@ -117,7 +117,7 @@ def main_menu():
             if len(result if result is not None else '') > 0:
                 level = get_level(result)
                 if game(result, level - 1):
-                    console.print('✅ Correct')
+                    console.print(f'✅ Correct - {level=} - {points=}')
                     points += level
                     if points % 10 == 0:
                         dificulty += 1
