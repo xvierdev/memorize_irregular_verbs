@@ -26,7 +26,7 @@ def insert_into_table(data: tuple):
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT OR IGNORE INTO english VALUES (?, ?, ?, ?)', data)
+            cursor.execute('INSERT OR IGNORE INTO english (word, translation, past, past_participle) VALUES (?, ?, ?, ?)', data)
             if cursor.rowcount > 0:
                 cursor.close()
                 return True
