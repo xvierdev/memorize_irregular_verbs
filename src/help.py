@@ -69,18 +69,32 @@ def insert_from_file(file):
         insert_into_table(tuple(line.split()))
 
 
-def get_random_data(dificulty) -> tuple:
+def get_random_data(dificulty: int, statistics: dict) -> tuple:
     # obter uma linha aleatória na tabela
+    max_error = 0
+    next_key = 0
+    for key, value in statistics.items():
+        if value > max_error:
+            max_error = value
+            next_key = key
+
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                'SELECT word, translation, past, past_participle FROM english WHERE id < ? ORDER BY RANDOM() LIMIT 1',
-                (dificulty,))
-            return cursor.fetchone()
+            if next_key == 0:
+                cursor.execute(
+                    'SELECT id, word, translation, past, past_participle FROM english WHERE id <= ? ORDER BY RANDOM() LIMIT 1',
+                    (dificulty,))
+            else:
+                cursor.execute(
+                    'SELECT id, word, translation, past, past_participle FROM english WHERE id = ?',
+                    (next_key,))
+                next_key = 0
+            data = cursor.fetchone()
+            return data[0], data[1:]
     except sqlite3.Error as e:
         console.print('Erro ao obter dados:', e)
-        return ()
+        return -1, ()
 
 
 def game(result: tuple, level: int):
@@ -103,14 +117,18 @@ def get_level(result: tuple):
 
 def main_menu():
     # menu principal da aplicação
-    points = 0
-    dificulty = 10
+    points = 0              # pontuação do jogador
+    increment = 0           # contrele de update de nível
+    dificulty = 3           # numero de palavras iniciais
+    statistics = dict()     # controle de repetição dos erros
+    name = ''
     try:
         console.print("Welcome to the English tournament :skull:")
         name = input('Enter your name: ')
+        dificulty = int(input('Chosse difficulty level (1~54): '))
 
         while True:
-            result = get_random_data(dificulty)
+            id, result = get_random_data(dificulty, statistics)
             if result is None:
                 console.print('No data found in table, please insert it')
                 break
@@ -119,12 +137,26 @@ def main_menu():
                 if game(result, level - 1):
                     console.print(f'✅ Correct - {level=} - {points=}')
                     points += level
-                    if points % 10 == 0:
-                        dificulty += 1
+                    increment += 1
+                    if increment % 10 == 0:
+                        dificulty += 3
+                        increment = 0
+                    if statistics.get(id):
+                        if statistics[id] > 0:
+                            statistics[id] -= 1
+                        else:
+                            statistics.pop(id)
                 else:
                     console.print('❌ Incorrect 📜', *result)
+                    if id in statistics.keys():
+                        statistics[id] += 1
+                    else:
+                        statistics[id] = 1
+                    print(statistics)
     except KeyboardInterrupt:
         console.print(f'\n{points=}')
+        with open('records.txt', '+a', encoding='utf-8') as file:
+            file.write(f'record of player {name} = {points}')
 
 
 if __name__ == '__main__':
