@@ -4,3 +4,7 @@ venv/
 
 # ignorar database
 *.db
+
+# logs
+records.txt
+*.log
