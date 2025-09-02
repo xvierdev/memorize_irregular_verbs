@@ -7,6 +7,7 @@ console = Console()
 def create_database():
     # incializa a table principal
     schema = 'CREATE TABLE IF NOT EXISTS english (' \
+        'id INTEGER PRIMARY KEY AUTOINCREMENT,' \
         'word VARCHAR(50) UNIQUE NOT NULL,' \
         'translation VARCHAR(50) NOT NULL,' \
         'past VARCHAR(50) NOT NULL,' \
@@ -62,19 +63,20 @@ def insert_menu():
 def insert_from_file(file):
     # obter dados a partir do arquivo de texto
     lines = []
-    with open(file, 'r') as file:
+    with open(file, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for line in lines:
         insert_into_table(tuple(line.split()))
 
 
-def get_random_data() -> tuple:
+def get_random_data(dificulty) -> tuple:
     # obter uma linha aleatória na tabela
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
-                'SELECT word, translation, past, past_participle FROM english ORDER BY RANDOM() LIMIT 1')
+                'SELECT word, translation, past, past_participle FROM english WHERE id < ? ORDER BY RANDOM() LIMIT 1',
+                (dificulty,))
             return cursor.fetchone()
     except sqlite3.Error as e:
         console.print('Erro ao obter dados:', e)
@@ -102,12 +104,13 @@ def get_level(result: tuple):
 def main_menu():
     # menu principal da aplicação
     points = 0
+    dificulty = 10
     try:
         console.print("Welcome to the English tournament :skull:")
         name = input('Enter your name: ')
 
         while True:
-            result = get_random_data()
+            result = get_random_data(dificulty)
             if result is None:
                 console.print('No data found in table, please insert it')
                 break
@@ -116,6 +119,8 @@ def main_menu():
                 if game(result, level - 1):
                     console.print('✅ Correct')
                     points += level
+                    if points % 10 == 0:
+                        dificulty += 1
                 else:
                     console.print('❌ Incorrect 📜', *result)
     except KeyboardInterrupt:
