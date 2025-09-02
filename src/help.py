@@ -135,7 +135,6 @@ def main_menu():
             if len(result if result is not None else '') > 0:
                 level = get_level(result)
                 if game(result, level - 1):
-                    console.print(f'✅ Correct - {level=} - {points=}')
                     points += level
                     increment += 1
                     if increment % 10 == 0:
@@ -146,6 +145,7 @@ def main_menu():
                             statistics[id] -= 1
                         else:
                             statistics.pop(id)
+                    console.print(f'✅ Correct - {level=} - {points=}')
                 else:
                     console.print('❌ Incorrect 📜', *result)
                     if id in statistics.keys():
@@ -156,7 +156,7 @@ def main_menu():
     except KeyboardInterrupt:
         console.print(f'\n{points=}')
         with open('records.txt', '+a', encoding='utf-8') as file:
-            file.write(f'record of player {name} = {points}')
+            file.write(f'record of player {name} = {points}\n')
 
 
 if __name__ == '__main__':
