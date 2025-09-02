@@ -1,2 +1,6 @@
+# ignorar ambiente virtual
 .venv/
 venv/
+
+# ignorar database
+*.db

@@ -6,7 +6,7 @@ bring trazer brought brought
 build construir built built
 buy comprar bought bought
 read ler read read
-catch pegar, capturar caught caught
+catch pegar caught caught
 run correr ran run
 choose escolher chose chosen
 say dizer said said
@@ -28,25 +28,25 @@ sleep dormir slept slept
 fall cair fell fallen
 speak falar spoke spoken
 feel sentir felt felt
-spend gastar, passar (tempo) spent spent
+spend gastar spent spent
 fight lutar fought fought
 swim nadar swam swum
 find encontrar found found
-take levar, pegar took taken
+take pegar took taken
 fly voar flew flown
 teach ensinar taught taught
 forget esquecer forgot forgotten
 tell contar told told
 forgive perdoar forgave forgiven
 think pensar thought thought
-get conseguir, obter got got
-throw lançar, jogar threw thrown
+get pegar got got
+throw lançar threw thrown
 give dar gave given
 understand entender understood understood
 go ir went gone
 wake acordar woke woken
 have ter had had
 wear vestir wore worn
-know saber, conhecer knew known
+know saber knew known
 win ganhar won won
 write escrever wrote written
