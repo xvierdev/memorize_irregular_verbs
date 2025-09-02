@@ -51,6 +51,13 @@ def insert_menu():
     else:
         return False
 
+def insert_from_file(file):
+    lines = []
+    with open(file, 'r') as file:
+        lines = file.readlines()
+    for line in lines:
+        insert_into_table(tuple(line.split()))
+
 
 def get_random_data() -> tuple:
     try:
@@ -108,4 +115,5 @@ def main_menu():
 
 if __name__ == '__main__':
     create_database()
+    insert_from_file('src/list.txt')
     main_menu()
