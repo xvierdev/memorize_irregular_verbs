@@ -5,6 +5,7 @@ console = Console()
 
 
 def create_database():
+    # incializa a table principal
     schema = 'CREATE TABLE IF NOT EXISTS english (' \
         'word VARCHAR(50) UNIQUE NOT NULL,' \
         'translation VARCHAR(50),' \
@@ -21,10 +22,11 @@ def create_database():
 
 
 def insert_into_table(data: tuple):
+    # inserir dados na tabela
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO english VALUES (?, ?, ?, ?)', data)
+            cursor.execute('INSERT OR IGNORE INTO english VALUES (?, ?, ?, ?)', data)
             if cursor.rowcount > 0:
                 cursor.close()
                 return True
@@ -37,6 +39,7 @@ def insert_into_table(data: tuple):
 
 
 def insert_menu():
+    # inserir dados manualmente
     word = input('infinitive form: ')
     if word == '':
         return False
@@ -54,7 +57,9 @@ def insert_menu():
     else:
         return False
 
+
 def insert_from_file(file):
+    # obter dados a partir do arquivo de texto
     lines = []
     with open(file, 'r') as file:
         lines = file.readlines()
@@ -63,6 +68,7 @@ def insert_from_file(file):
 
 
 def get_random_data() -> tuple:
+    # obter uma linha aleatória na tabela
     try:
         with sqlite3.Connection('english.db') as conn:
             cursor = conn.cursor()
@@ -74,6 +80,7 @@ def get_random_data() -> tuple:
 
 
 def game(result: tuple, level: int):
+    # exibe e formata o resultado obtivo e verifica o acerto ou erro
     color = ['green', 'yellow', 'red']
     console.print(result[0], style=str(color[level]))
     translate = input('Translate: ').strip()
@@ -86,36 +93,31 @@ def game(result: tuple, level: int):
 
 
 def get_level(result: tuple):
+    # obtém o nível de dificuldade da palavra
     return len(set(result)) - 1
 
 
 def main_menu():
-    while True:
-        console.print('choose your option: ')
-        op = input().strip().lower()
+    # menu principal da aplicação
+    points = 0
+    try:
+        console.print("Welcome to the English tournament :skull:")
+        name = input('Enter your name: ')
 
-        if op == '1':
-            insert_menu()
-        if op == '2':
-            points = 0
-            try:
-                while True:
-                    result = get_random_data()
-                    if result is None:
-                        console.print('No data found in table, please insert it')
-                        break
-                    if len(result if result is not None else '') > 0:
-                        level = get_level(result)
-                        if game(result, level - 1):
-                            console.print('Correct')
-                            points += level
-                        else:
-                            console.print('Incorrect:', *result)
-            except KeyboardInterrupt:
-                console.print('Points =', points)
-        if op in ('0', '', 'q'):
-            console.print('bye.')
-            exit()
+        while True:
+            result = get_random_data()
+            if result is None:
+                console.print('No data found in table, please insert it')
+                break
+            if len(result if result is not None else '') > 0:
+                level = get_level(result)
+                if game(result, level - 1):
+                    console.print('✅ Correct')
+                    points += level
+                else:
+                    console.print('❌ Incorrect 📜', *result)
+    except KeyboardInterrupt:
+        console.print(f'\n{points=}')
 
 
 if __name__ == '__main__':
