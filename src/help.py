@@ -2,8 +2,63 @@ import sqlite3
 import logging
 from rich.console import Console
 
-logging.basicConfig(level=logging.DEBUG, encoding='utf-8')
+logging.basicConfig(level=logging.INFO, encoding='utf-8', filename='debug.log')
 console = Console()
+
+
+_INCORPORED_LIST = """be ser was/were been
+become tornar-se became become
+begin começar began begun
+break quebrar broke broken
+bring trazer brought brought
+build construir built built
+buy comprar bought bought
+read ler read read
+catch pegar caught caught
+run correr ran run
+choose escolher chose chosen
+say dizer said said
+come vir came come
+cut cortar cut cut
+see ver saw seen
+do fazer did done
+sell vender sold sold
+draw desenhar drew drawn
+send enviar sent sent
+dream sonhar dreamt dreamt
+shut fechar shut shut
+drive dirigir drove driven
+sing cantar sang sung
+drink beber drank drunk
+sit sentar sat sat
+eat comer ate eaten
+sleep dormir slept slept
+fall cair fell fallen
+speak falar spoke spoken
+feel sentir felt felt
+spend gastar spent spent
+fight lutar fought fought
+swim nadar swam swum
+find encontrar found found
+take pegar took taken
+fly voar flew flown
+teach ensinar taught taught
+forget esquecer forgot forgotten
+tell contar told told
+forgive perdoar forgave forgiven
+think pensar thought thought
+get pegar got got
+throw lançar threw thrown
+give dar gave given
+understand entender understood understood
+go ir went gone
+wake acordar woke woken
+have ter had had
+wear vestir wore worn
+know saber knew known
+win ganhar won won
+write escrever wrote written
+"""
 
 
 def create_database():
@@ -57,6 +112,17 @@ def insert_from_file(file):
             lines = file.readlines()
         for line in lines:
             insert_into_table(tuple(line.split()))
+        logging.info('Dados inseridos com sucesso na database.')
+    except FileNotFoundError as e:
+        logging.error(f'Erro ao abrir arquivo: {e}')
+
+
+def insert_from_string(lines):
+    # obter dados a partir do arquivo de texto
+    try:
+        for line in lines:
+            if len(line.split()) == 4:
+                insert_into_table(tuple(line.split()))
         logging.info('Dados inseridos com sucesso na database.')
     except FileNotFoundError as e:
         logging.error(f'Erro ao abrir arquivo: {e}')
@@ -187,5 +253,5 @@ def main_menu():
 
 if __name__ == '__main__':
     create_database()
-    insert_from_file('src/list.txt')
+    insert_from_string(_INCORPORED_LIST.split('\n'))
     main_menu()

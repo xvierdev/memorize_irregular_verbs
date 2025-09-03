@@ -8,3 +8,9 @@ venv/
 # logs
 records.txt
 *.log
+
+# build folders
+build/
+
+# temporary files
+*.spec
