@@ -1,6 +1,8 @@
 import sqlite3
+import logging
 from rich.console import Console
 
+logging.basicConfig(level=logging.DEBUG, encoding='utf-8')
 console = Console()
 
 
@@ -16,9 +18,10 @@ def create_database():
         with sqlite3.Connection('english.db') as conn:
             conn.execute(schema)
             conn.commit()
+            logging.debug('Tabela criada com sucesso.')
         return True
     except sqlite3.Error as e:
-        console.print('Erro de sql:', e)
+        logging.error(e)
         return False
 
 
@@ -31,52 +34,37 @@ def insert_into_table(data: tuple):
                 'INSERT OR IGNORE INTO english (word, translation, past, past_participle) VALUES (?, ?, ?, ?)', data)
             if cursor.rowcount > 0:
                 cursor.close()
+                logging.info(f'{data} inserido com sucesso.')
                 return True
             else:
                 cursor.close()
                 return False
     except sqlite3.Error as e:
-        console.print('Erro ao inserir dados:', e)
-        return False
-
-
-def insert_menu():
-    # inserir dados manualmente
-    word = input('infinitive form: ')
-    if word == '':
-        return False
-    translate = input('translate: ')
-    if translate == '':
-        return False
-    past = input('past: ')
-    if past == '':
-        return False
-    past_participle = input('past participle: ')
-    if past_participle == '':
-        return False
-    if insert_into_table((word, translate, past, past_participle)):
-        return True
-    else:
+        logging.error(f'Erro ao inserir dados: {e}')
         return False
 
 
 def insert_from_file(file):
     # obter dados a partir do arquivo de texto
     lines = []
-    with open(file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-    for line in lines:
-        insert_into_table(tuple(line.split()))
+    try:
+        with open(file, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        for line in lines:
+            insert_into_table(tuple(line.split()))
+        logging.info('Dados inseridos com sucesso na database.')
+    except FileNotFoundError as e:
+        logging.error(f'Erro ao abrir arquivo: {e}')
 
 
-def get_random_data(dificulty: int, statistics: dict) -> tuple:
+def get_random_data(dificulty: int, statistics) -> tuple:
     # obter uma linha aleatória na tabela
-    max_error = 0
     next_key = 0
-    for key, value in statistics.items():
-        if value > max_error:
-            max_error = value
-            next_key = key
+    if len(statistics.keys()) > 0:
+        if len(set(statistics.values())) > 1:
+            next_key = min(statistics.keys(), key=statistics.get)
+            logging.debug(f'{next_key=}')
+            logging.debug(f'{statistics=}')
 
     try:
         with sqlite3.Connection('english.db') as conn:
@@ -91,9 +79,10 @@ def get_random_data(dificulty: int, statistics: dict) -> tuple:
                     (next_key,))
                 next_key = 0
             data = cursor.fetchone()
+            logging.debug(f'{data=}')
             return data[0], data[1:]
     except sqlite3.Error as e:
-        console.print('Erro ao obter dados:', e)
+        logging.error(f'Erro ao obter dados: {e}')
         return -1, ()
 
 
@@ -117,11 +106,14 @@ def get_level(result: tuple):
 
 def main_menu():
     # menu principal da aplicação
+    name = ''
     points = 0              # pontuação do jogador
     increment = 0           # contrele de update de nível
     dificulty = 3           # numero de palavras iniciais
+    answers = 0             # contagem total de respostas
+    corrects = 0            # contagem de acertos
+    errors = 0              # contagem de erros
     statistics = dict()     # controle de repetição dos erros
-    name = ''
     try:
         console.print("Welcome to the English tournament :skull:")
         name = input('Enter your name: ')
@@ -130,29 +122,30 @@ def main_menu():
         while True:
             id, result = get_random_data(dificulty, statistics)
             if result is None:
-                console.print('No data found in table, please insert it')
+                logging.error('No data found in tables, please insert it.')
                 break
-            if len(result if result is not None else '') > 0:
+            else:
                 level = get_level(result)
                 if game(result, level - 1):
                     points += level
                     increment += 1
-                    if increment % 10 == 0:
+                    corrects += 1
+                    if increment % 5 == 0:
                         dificulty += 3
                         increment = 0
                     if statistics.get(id):
-                        if statistics[id] > 0:
-                            statistics[id] -= 1
-                        else:
-                            statistics.pop(id)
-                    console.print(f'✅ Correct - {level=} - {points=}')
-                else:
-                    console.print('❌ Incorrect 📜', *result)
-                    if id in statistics.keys():
                         statistics[id] += 1
                     else:
                         statistics[id] = 1
-                    print(statistics)
+                    console.print(f'✅ Correct - {dificulty=} - {points=}')
+                else:
+                    errors += 1
+                    console.print('❌ Incorrect 📜', *result)
+                    if id in statistics.keys():
+                        statistics[id] -= 1
+                    else:
+                        statistics[id] = -1
+                answers += 1
     except KeyboardInterrupt:
         console.print(f'\n{points=}')
         with open('records.txt', '+a', encoding='utf-8') as file:
