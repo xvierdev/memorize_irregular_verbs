@@ -7,16 +7,21 @@ console = Console()
 
 
 def create_database():
-    # incializa a table principal
+    # inicializa a table principal
     schema = 'CREATE TABLE IF NOT EXISTS english (' \
         'id INTEGER PRIMARY KEY AUTOINCREMENT,' \
         'word VARCHAR(50) UNIQUE NOT NULL,' \
         'translation VARCHAR(50) NOT NULL,' \
         'past VARCHAR(50) NOT NULL,' \
-        'past_participle VARCHAR(50) NOT NULL)'
+        'past_participle VARCHAR(50) NOT NULL);' \
+        'CREATE TABLE IF NOT EXISTS records (' \
+        'name VARCHAR(50) DEFAULT \'player1\',' \
+        'record INTEGER DEFAULT 0,' \
+        'corrects INTEGER DEFAULT 0,' \
+        'errors INTEGER DEFAULT 0);'
     try:
         with sqlite3.Connection('english.db') as conn:
-            conn.execute(schema)
+            conn.executescript(schema)
             conn.commit()
             logging.debug('Tabela criada com sucesso.')
         return True
@@ -61,7 +66,7 @@ def get_random_data(dificulty: int, statistics) -> tuple:
     # obter uma linha aleatória na tabela
     next_key = 0
     if len(statistics.keys()) > 0:
-        if len(set(statistics.values())) > 1:
+        if len(set(statistics.values())) > 2:  # diferença de frequencia
             next_key = min(statistics.keys(), key=statistics.get)
             logging.debug(f'{next_key=}')
             logging.debug(f'{statistics=}')
@@ -87,7 +92,7 @@ def get_random_data(dificulty: int, statistics) -> tuple:
 
 
 def game(result: tuple, level: int):
-    # exibe e formata o resultado obtivo e verifica o acerto ou erro
+    # exibe e formata o resultado obtido e verifica o acerto ou erro
     color = ['green', 'yellow', 'red']
     console.print(result[0], style=str(color[level]))
     translate = input('Translate: ').strip()
@@ -104,20 +109,46 @@ def get_level(result: tuple):
     return len(set(result)) - 1
 
 
+def write_records(data: tuple):
+    try:
+        with sqlite3.connect('english.db') as conn:
+            conn.execute('INSERT INTO records VALUES (?,?,?,?)', data)
+            conn.commit()
+            logging.info('Score gravado com sucesso.')
+    except sqlite3.Error as e:
+        logging.error(f'Ocorreu um erro ao gravar scores: {e}')
+
+
+def read_records():
+    try:
+        with sqlite3.connect('english.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'SELECT * FROM records ORDER BY record DESC LIMIT 3')
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        logging.error(f'Erro ao obter records: {e}')
+
+
 def main_menu():
     # menu principal da aplicação
     name = ''
     points = 0              # pontuação do jogador
     increment = 0           # contrele de update de nível
-    dificulty = 3           # numero de palavras iniciais
+    difficulty = 3          # numero de palavras iniciais
     answers = 0             # contagem total de respostas
     corrects = 0            # contagem de acertos
     errors = 0              # contagem de erros
     statistics = dict()     # controle de repetição dos erros
     try:
         console.print("Welcome to the English tournament :skull:")
+        records = read_records()
+        if records is not None:
+            console.print('Records 🏁')
+            for i, record in enumerate(records):
+                print(f'{i + 1}:{record[0]} points = {record[1]}')
         name = input('Enter your name: ')
-        dificulty = int(input('Chosse difficulty level (1~54): '))
+        difficulty = int(input('Choose difficulty level (1~54): '))
 
         while True:
             id, result = get_random_data(dificulty, statistics)
@@ -131,7 +162,7 @@ def main_menu():
                     increment += 1
                     corrects += 1
                     if increment % 5 == 0:
-                        dificulty += 3
+                        difficulty += 3
                         increment = 0
                     if statistics.get(id):
                         statistics[id] += 1
@@ -147,9 +178,11 @@ def main_menu():
                         statistics[id] = -1
                 answers += 1
     except KeyboardInterrupt:
-        console.print(f'\n{points=}')
-        with open('records.txt', '+a', encoding='utf-8') as file:
-            file.write(f'record of player {name} = {points}\n')
+        if points > 0:
+            write_records((name if name != '' else 'AnyPlayer',
+                           answers, corrects, errors))
+        logging.debug('Encerrado pelo usuário.')
+        console.print('Bye 💤')
 
 
 if __name__ == '__main__':
