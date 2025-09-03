@@ -151,7 +151,7 @@ def main_menu():
         difficulty = int(input('Choose difficulty level (1~54): '))
 
         while True:
-            id, result = get_random_data(dificulty, statistics)
+            id, result = get_random_data(difficulty, statistics)
             if result is None:
                 logging.error('No data found in tables, please insert it.')
                 break
@@ -168,7 +168,7 @@ def main_menu():
                         statistics[id] += 1
                     else:
                         statistics[id] = 1
-                    console.print(f'✅ Correct - {dificulty=} - {points=}')
+                    console.print(f'✅ Correct - {difficulty=} - {points=}')
                 else:
                     errors += 1
                     console.print('❌ Incorrect 📜', *result)
