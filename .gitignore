@@ -7,10 +7,9 @@ venv/
 
 # logs
 records.txt
+
+# temporary files and folders
 *.log
-
-# build folders
-build/
-
-# temporary files
 *.spec
+build/
+__pycache__/

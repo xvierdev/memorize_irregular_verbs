@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 from rich.console import Console
+from sound import play
 
 logging.basicConfig(level=logging.INFO, encoding='utf-8', filename='debug.log')
 console = Console()
@@ -161,9 +162,13 @@ def game(result: tuple, level: int):
     # exibe e formata o resultado obtido e verifica o acerto ou erro
     color = ['green', 'yellow', 'red']
     console.print(result[0], style=str(color[level]))
+    play(result[0])
     translate = input('Translate: ').strip()
+    play(translate, 'pt-br')
     past = input('Past: ').strip()
+    play(past)
     past_participle = input('Past participle: ').strip()
+    play(past_participle)
     if (result[0], translate, past, past_participle) == result:
         return True
     else:
@@ -238,6 +243,7 @@ def main_menu():
                 else:
                     errors += 1
                     console.print('❌ Incorrect 📜', *result)
+                    play(','.join((result[0], result[2], result[3])))
                     if id in statistics.keys():
                         statistics[id] -= 1
                     else:
