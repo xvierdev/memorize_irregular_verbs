@@ -1,0 +1,1 @@
+pyinstaller --name="IrregularVerbs" --onefile .\src\help.py .\src\sound.py

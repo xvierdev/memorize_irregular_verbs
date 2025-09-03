@@ -30,7 +30,3 @@ def play(text: str, language='en') -> None:
         except PermissionError as e:
             logging.error(f'Erro ao remover arquivo: {e}')
             pass
-
-
-if __name__ == '__main__':
-    play("This is much simpler with the playsound library.")
